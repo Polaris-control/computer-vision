@@ -117,7 +117,7 @@ save_image(filtered_image_array, f"filtered_{sigma}_lion.jpg")
 
 
 
-def part2_1(image_path, sigma):
+def blurred(image_path, sigma):
     # Load the image and convert to numpy array
     image_array = load_image(image_path)
     
@@ -130,10 +130,10 @@ def part2_1(image_path, sigma):
 # Example usage
 image_path = "original_3_lion.jpg"  # Replace with your image file path
 sigma = 5  # Choose an appropriate sigma value
-part2_1(image_path, sigma)
+blurred(image_path, sigma)
 
 
-def part2_2(image_path, sigma):
+def high_frequency(image_path, sigma):
     # Load the image and convert to numpy array
     image_array = load_image(image_path)
     
@@ -152,10 +152,10 @@ def part2_2(image_path, sigma):
 # Example usage
 image_path = "original_3_lion.jpg"  # Replace with your image file path
 sigma = 5  # Choose an appropriate sigma value
-part2_2(image_path, sigma)
+high_frequency(image_path, sigma)
 
 
-def part2_3(image_path, sigma):
+def composite(image_path, sigma):
     # Load the original image
     original_image_array = load_image(image_path)
     
@@ -174,7 +174,7 @@ def part2_3(image_path, sigma):
 # Example usage
 image_path = "original_3_lion.jpg"  # Replace with your image file path
 sigma = 5  # Choose an appropriate sigma value
-part2_3(image_path, sigma)
+composite(image_path, sigma)
 
 #代码通过使用高斯滤波器对图像进行模糊处理，并计算了原始图像的低频成分和高频成分。然后，它将这些成分组合起来创建了一个混合图像，
 其中低频部分是原始图像的模糊版本，而高频部分包含原始图像中的细节。最后，代码对生成的图像进行了像素值的截断和处理，确保其在合理范围内。
