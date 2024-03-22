@@ -13,12 +13,18 @@ print(boxfilter(5))
 print(boxfilter(7))
 
 def gauss1d(sigma):
+    # Calculate the length of the filter
     length = int(np.ceil(6 * sigma))
     if length % 2 == 0:
         length += 1
     
+    # Generate 1D array of x values
     x = np.arange(-length // 2, length // 2 + 1)
+    
+    # Compute the Gaussian function
     gaussian_filter = np.exp(-x ** 2 / (2 * sigma ** 2))
+    
+    # Normalize the filter values
     normalized_filter = gaussian_filter / np.sum(gaussian_filter)
     
     return normalized_filter
@@ -33,17 +39,12 @@ for sigma in sigmas:
 
 def gauss2d(sigma):
     # Generate 1D Gaussian filter
-    length = int(np.ceil(6 * sigma))
-    if length % 2 == 0:
-        length += 1
-    x = np.arange(-length // 2, length // 2 + 1)
-    gaussian_filter_1d = np.exp(-x ** 2 / (2 * sigma ** 2))
-    normalized_filter_1d = gaussian_filter_1d / np.sum(gaussian_filter_1d)
+    gaussian_1d = gauss1d(sigma)
     
-    # Generate 2D Gaussian filter
-    gaussian_filter_2d = np.outer(normalized_filter_1d, normalized_filter_1d)
+    # Generate 2D Gaussian filter using outer product
+    gaussian_2d = np.outer(gaussian_1d, gaussian_1d)
     
-    return gaussian_filter_2d
+    return gaussian_2d
 
 # Test cases
 sigmas = [0.5, 1]
@@ -51,7 +52,6 @@ for sigma in sigmas:
     print(f"Sigma = {sigma}:")
     print(gauss2d(sigma))
     print()
-
 
 def convolve2d(array, filter):
     # Get dimensions of input array and filter
@@ -88,130 +88,93 @@ def gaussconvolve2d(array, sigma):
     return result
 
 # Load image and convert to grayscale numpy array
-image = Image.open("3a_lion.bmp")
-image_gray = image.convert("L")
-image_array = np.array(image_gray, dtype=np.float32)
+def load_image(image_path):
+    image = Image.open(image_path)
+    image_gray = image.convert("L")
+    image_array = np.array(image_gray, dtype=np.float32)
+    return image_array
 
-# Apply Gaussian convolution with sigma of 3
+def save_image(image_array, file_name):
+    # Convert array back to unsigned integer format
+    image_array = image_array.astype(np.uint8)
+    # Convert array back to image
+    image = Image.fromarray(image_array)
+    # Save the image
+    image.save(file_name)
+    # Display the image
+    image.show()
+
+# Test gaussconvolve2d with a sigma of 3 on the image
+image_array = load_image("3a_lion.bmp")
 sigma = 3
 filtered_image_array = gaussconvolve2d(image_array, sigma)
 
-# Convert back to unsigned integer format
-filtered_image_array = filtered_image_array.astype(np.uint8)
+# Save and display the original and filtered images
 
-# Convert array back to image
-filtered_image = Image.fromarray(filtered_image_array)
+save_image(image_array, f"original_{sigma}_lion.jpg")
+save_image(filtered_image_array, f"filtered_{sigma}_lion.jpg")
 
-# Show original and filtered images
-image.show()
-filtered_image.show()
 
-def gaussconvolve2d(array, sigma):
-    # Generate 2D Gaussian filter
-    filter = gauss2d(sigma)
+
+
+def part2_1(image_path, sigma):
+    # Load the image and convert to numpy array
+    image_array = load_image(image_path)
     
-    # Perform convolution
-    result = convolve2d(array, filter)
+    # Apply Gaussian convolution
+    blurred_image_array = gaussconvolve2d(image_array, sigma)
     
-    return result
+    # Save the blurred image with the provided file name
+    save_image(blurred_image_array, f"blurred_{sigma}_lion.jpg")
 
-# Load the image
-image = Image.open("3a_lion_bmp")
-
-# Convert the image to a numpy array
-image_array = np.array(image, dtype=np.float32)
-
-# Choose an appropriate sigma value
-sigma = 3
-
-# Create blurred version of the image for each color channel
-red_channel_blurred = gaussconvolve2d(image_array[:, :, 0], sigma)
-green_channel_blurred = gaussconvolve2d(image_array[:, :, 1], sigma)
-blue_channel_blurred = gaussconvolve2d(image_array[:, :, 2], sigma)
-
-# Compose the channels back to the color image
-blurred_image_array = np.stack((red_channel_blurred, green_channel_blurred, blue_channel_blurred), axis=-1)
-
-# Convert the array back to unsigned integer format
-blurred_image_array = blurred_image_array.astype(np.uint8)
-
-# Convert the array back to image
-blurred_image = Image.fromarray(blurred_image_array)
-
-# Save the blurred image
-blurred_image.save("blurred_image.png")
-
-# Display the blurred image
-blurred_image.show()
+# Example usage
+image_path = "original_3_lion.jpg"  # Replace with your image file path
+sigma = 5  # Choose an appropriate sigma value
+part2_1(image_path, sigma)
 
 
-# Choose an appropriate sigma value for high frequency
-sigma_high_freq = sigma
+def part2_2(image_path, sigma):
+    # Load the image and convert to numpy array
+    image_array = load_image(image_path)
+    
+    # Apply Gaussian convolution
+    blurred_image_array = gaussconvolve2d(image_array, sigma)
+    
+    # Compute high frequency image
+    high_frequency_array = image_array - blurred_image_array
+    
+    # Zero-center and scale for visualization
+    high_frequency_array = high_frequency_array + 128
+    
+    # Save the high frequency image with the provided file name
+    save_image(high_frequency_array, f"high_frequency_{sigma}_lion.jpg")
 
-# Compute low-frequency blurred version of the image for each color channel
-red_channel_low_freq = gaussconvolve2d(image_array[:, :, 0], sigma_high_freq)
-green_channel_low_freq = gaussconvolve2d(image_array[:, :, 1], sigma_high_freq)
-blue_channel_low_freq = gaussconvolve2d(image_array[:, :, 2], sigma_high_freq)
+# Example usage
+image_path = "original_3_lion.jpg"  # Replace with your image file path
+sigma = 5  # Choose an appropriate sigma value
+part2_2(image_path, sigma)
 
-# Create high-frequency version of the image for each color channel
-red_channel_high_freq = image_array[:, :, 0] - red_channel_low_freq
-green_channel_high_freq = image_array[:, :, 1] - green_channel_low_freq
-blue_channel_high_freq = image_array[:, :, 2] - blue_channel_low_freq
 
-# Add 128 to visualize the high-frequency image
-red_channel_high_freq_visualized = red_channel_high_freq + 128
-green_channel_high_freq_visualized = green_channel_high_freq + 128
-blue_channel_high_freq_visualized = blue_channel_high_freq + 128
+def part2_3(image_path, sigma):
+    # Load the original image
+    original_image_array = load_image(image_path)
+    
+    # Apply Gaussian convolution to obtain low frequency image
+    low_frequency_array = gaussconvolve2d(original_image_array, sigma)
+    
+    # Compute high frequency image without scaling
+    high_frequency_array = original_image_array - low_frequency_array
+    
+    # Add low and high frequency images (per channel)
+    composite_image_array = original_image_array + high_frequency_array
+    
+    # Save the composite image with the provided file name
+    save_image(composite_image_array, f"composite_{sigma}_lion.jpg")
 
-# Compose the channels back to form the high-frequency color image
-high_freq_image_array = np.stack((red_channel_high_freq_visualized, green_channel_high_freq_visualized, blue_channel_high_freq_visualized), axis=-1)
-
-# Convert the array back to unsigned integer format
-high_freq_image_array = high_freq_image_array.astype(np.uint8)
-
-# Convert the array back to image using PIL
-high_freq_image = Image.fromarray(high_freq_image_array)
-
-# Save the high frequency image
-high_freq_image.save("high_freq_image.png")
-
-# Display the high-frequency image
-high_freq_image.show()
-
-# Clamp pixel values to ensure they are within the valid range
-def clamp(pixel_value):
-    return max(0, min(pixel_value, 255))
-
-# Clamp pixel values of low frequency image
-red_channel_low_freq_clamped = np.array([[clamp(val) for val in row] for row in red_channel_low_freq])
-green_channel_low_freq_clamped = np.array([[clamp(val) for val in row] for row in green_channel_low_freq])
-blue_channel_low_freq_clamped = np.array([[clamp(val) for val in row] for row in blue_channel_low_freq])
-
-# Clamp pixel values of high frequency image
-red_channel_high_freq_clamped = np.array([[clamp(val) for val in row] for row in red_channel_high_freq])
-green_channel_high_freq_clamped = np.array([[clamp(val) for val in row] for row in green_channel_high_freq])
-blue_channel_high_freq_clamped = np.array([[clamp(val) for val in row] for row in blue_channel_high_freq])
-
-# Add low and high frequency images per channel
-red_channel_hybrid = red_channel_high_freq_clamped + red_channel_low_freq_clamped
-green_channel_hybrid = green_channel_high_freq_clamped + red_channel_low_freq_clamped
-blue_channel_hybrid = blue_channel_high_freq_clamped + red_channel_low_freq_clamped
-
-# Compose the channels back to form the final hybrid image
-hybrid_image_array = np.stack((red_channel_hybrid, green_channel_hybrid, blue_channel_hybrid), axis=-1)
-
-# Convert the array back to unsigned integer format
-hybrid_image_array = hybrid_image_array.astype(np.uint8)
-
-# Convert the array back to image using PIL
-hybrid_image = Image.fromarray(hybrid_image_array)
-
-# Save the hybrid image
-hybrid_image.save("hybrid_image_high_freq.png")
-
-# Display the hybrid image
-hybrid_image.show()
-
+# Example usage
+image_path = "original_3_lion.jpg"  # Replace with your image file path
+sigma = 5  # Choose an appropriate sigma value
+part2_3(image_path, sigma)
 
 #代码通过使用高斯滤波器对图像进行模糊处理，并计算了原始图像的低频成分和高频成分。然后，它将这些成分组合起来创建了一个混合图像，
 其中低频部分是原始图像的模糊版本，而高频部分包含原始图像中的细节。最后，代码对生成的图像进行了像素值的截断和处理，确保其在合理范围内。
