@@ -4,12 +4,12 @@ from PIL import Image
 
 def boxfilter(n):
     assert n % 2 != 0, "Dimension must be odd"
-    filter_value = 1 / (n * n)
-    return np.full((n, n), filter_value, dtype=float)
+    box_filter = np.full((n,n),1/(n*n))
+    return box_filter
 
 # Test cases
-print(boxfilter(5))
 print(boxfilter(3))
+print(boxfilter(5))
 print(boxfilter(7))
 
 def gauss1d(sigma):
@@ -116,13 +116,13 @@ def gaussconvolve2d(array, sigma):
     return result
 
 # Load the image
-image = Image.open("3a_lion.bmp")
+image = Image.open("3a_lion_bmp")
 
 # Convert the image to a numpy array
 image_array = np.array(image, dtype=np.float32)
 
 # Choose an appropriate sigma value
-sigma = 5
+sigma = 3
 
 # Create blurred version of the image for each color channel
 red_channel_blurred = gaussconvolve2d(image_array[:, :, 0], sigma)
@@ -193,9 +193,9 @@ green_channel_high_freq_clamped = np.array([[clamp(val) for val in row] for row 
 blue_channel_high_freq_clamped = np.array([[clamp(val) for val in row] for row in blue_channel_high_freq])
 
 # Add low and high frequency images per channel
-red_channel_hybrid = red_channel_high_freq_clamped
-green_channel_hybrid = green_channel_high_freq_clamped
-blue_channel_hybrid = blue_channel_high_freq_clamped
+red_channel_hybrid = red_channel_high_freq_clamped + red_channel_low_freq_clamped
+green_channel_hybrid = green_channel_high_freq_clamped + red_channel_low_freq_clamped
+blue_channel_hybrid = blue_channel_high_freq_clamped + red_channel_low_freq_clamped
 
 # Compose the channels back to form the final hybrid image
 hybrid_image_array = np.stack((red_channel_hybrid, green_channel_hybrid, blue_channel_hybrid), axis=-1)
@@ -212,3 +212,6 @@ hybrid_image.save("hybrid_image_high_freq.png")
 # Display the hybrid image
 hybrid_image.show()
 
+
+#代码通过使用高斯滤波器对图像进行模糊处理，并计算了原始图像的低频成分和高频成分。然后，它将这些成分组合起来创建了一个混合图像，
+其中低频部分是原始图像的模糊版本，而高频部分包含原始图像中的细节。最后，代码对生成的图像进行了像素值的截断和处理，确保其在合理范围内。
