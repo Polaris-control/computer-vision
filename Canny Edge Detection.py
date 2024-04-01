@@ -6,80 +6,43 @@ import numpy as np
 Get and use the functions associated with gaussconvolve2d that you used in the last HW02.
 """
 def gauss1d(sigma):
-    size = int(2 * sigma + 1)
-    kernel = np.zeros(size)
-    center = size // 2
-    const = 1 / (sigma * math.sqrt(2 * math.pi))
-
-    for i in range(size):
-        kernel[i] = const * math.exp(-((i - center) ** 2) / (2 * sigma ** 2))
-
-    return kernel / np.sum(kernel)
-
+   
 def gauss2d(sigma):
-    size = int(2 * sigma + 1)
-    kernel = np.zeros((size, size))
-    center = size // 2
-    const = 1 / (2 * math.pi * sigma ** 2)
+    # implement
 
-    for i in range(size):
-        for j in range(size):
-            kernel[i, j] = const * math.exp(-((i - center) ** 2 + (j - center) ** 2) / (2 * sigma ** 2))
+def convolve2d(array,filter):
+    # implement
 
-    return kernel / np.sum(kernel)
-
-def convolve2d(array, kernel):
-    m, n = array.shape
-    km, kn = kernel.shape
-    kh, kw = km // 2, kn // 2
-    result = np.zeros_like(array)
-
-    for i in range(kh, m - kh):
-        for j in range(kw, n - kw):
-            result[i, j] = np.sum(array[i-kh:i+kh+1, j-kw:j+kw+1] * kernel)
-
-    return result
-
-def gaussconvolve2d(array, sigma):
-    kernel = gauss2d(sigma)
-    return convolve2d(array, kernel)
-
+def gaussconvolve2d(array,sigma):
+    # implement
 
 def reduce_noise(img):
-    """ 返回灰度高斯滤波后的图像，sigma=1.6
+    """ Return the gray scale gaussian filtered image with sigma=1.6
     Args:
-        img: RGB图像。形状为(H, W, 3)的Numpy数组。
+        img: RGB image. Numpy array of shape (H, W, 3).
     Returns:
-        res: 灰度高斯滤波后的图像 (H, W)。
+        res: gray scale gaussian filtered image (H, W).
     """
-    grayscale_img = img.convert('L')  # 转换为灰度图像
-    grayscale_array = np.array(grayscale_img, dtype=np.float32)  # 转换为numpy数组
-    filtered_array = gaussconvolve2d(grayscale_array, 1.6)  # 应用高斯模糊
-    return filtered_array
+    #implement
+    return res
 
 def sobel_filters(img):
-    """ 返回图像的梯度幅度和方向。
+    """ Returns gradient magnitude and direction of input img.
     Args:
-        img: 灰度图像。形状为(H, W)的Numpy数组。
+        img: Grayscale image. Numpy array of shape (H, W).
     Returns:
-        G: 图像中每个像素的梯度幅度。
-            形状为(H, W)的Numpy数组。
-        theta: 图像中每个像素的梯度方向。
-            形状为(H, W)的Numpy数组。
+        G: Magnitude of gradient at each pixel in img.
+            Numpy array of shape (H, W).
+        theta: Direction of gradient at each pixel in img.
+            Numpy array of shape (H, W).
+    Hints:
+        - Use np.hypot and np.arctan2 to calculate square root and arctan
     """
-    sobel_x = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]])
-    sobel_y = np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]])
-
-    Ix = convolve2d(img, sobel_x)
-    Iy = convolve2d(img, sobel_y)
-
-    G = np.sqrt(Ix ** 2 + Iy ** 2)
-    theta = np.arctan2(Iy, Ix)
-
+    #implement 
     return (G, theta)
 
 def non_max_suppression(G, theta):
-    """ 执行非极大值抑制。
+    """ Performs non-maximum suppression.
     This function performs non-maximum suppression along the direction
     of gradient (theta) on the gradient magnitude image (G).
     Args:
@@ -88,29 +51,7 @@ def non_max_suppression(G, theta):
     Returns:
         res: non-maxima suppressed image.
     """
-    H, W = G.shape
-    res = np.zeros((H, W))
-
-    for i in range(1, H - 1):
-        for j in range(1, W - 1):
-            direction = theta[i, j] * (180 / np.pi)
-
-            if (0 <= direction < 22.5) or (157.5 <= direction <= 180) or (-22.5 <= direction < 0) or (-180 <= direction < -157.5):
-                q = G[i, j+1]
-                r = G[i, j-1]
-            elif (22.5 <= direction < 67.5) or (-157.5 <= direction < -112.5):
-                q = G[i+1, j-1]
-                r = G[i-1, j+1]
-            elif (67.5 <= direction < 112.5) or (-112.5 <= direction < -67.5):
-                q = G[i+1, j]
-                r = G[i-1, j]
-            elif (112.5 <= direction < 157.5) or (-67.5 <= direction < -22.5):
-                q = G[i-1, j-1]
-                r = G[i+1, j+1]
-
-            if (G[i, j] >= q) and (G[i, j] >= r):
-                res[i, j] = G[i, j]
-
+    pass
     return res
 
 def double_thresholding(img):
@@ -120,27 +61,25 @@ def double_thresholding(img):
     Returns:
         res: double_thresholded image.
     """
-    diff = np.max(img) - np.min(img)
-    high_threshold = np.min(img) + diff * 0.15
-    low_threshold = np.min(img) + diff * 0.03
-
-    strong_edges = np.where(img >= high_threshold, 255, 0)
-    weak_edges = np.where((img >= low_threshold) & (img < high_threshold), 80, 0)
-
-    for i in range(1, img.shape[0] - 1):
-        for j in range(1, img.shape[1] - 1):
-            if strong_edges[i, j] == 255:
-                dfs(img, strong_edges, i, j)
-
-    return strong_edges
+    #implement     
+    return res
 
 def dfs(img, res, i, j, visited=[]):
+    # calling dfs on (i, j) coordinate imply that
+    #   1. the (i, j) is strong edge
+    #   2. the (i, j) is weak edge connected to a strong edge
+    # In case 2, it meets the condition to be a strong edge
+    # therefore, change the value of the (i, j) which is weak edge to 255 which is strong edge
     res[i, j] = 255
+
+    # mark the visitation
     visited.append((i, j))
 
-    for ii in range(i-1, i+2):
-        for jj in range(j-1, j+2):
-            if (img[ii, jj] == 80) and ((ii, jj) not in visited):
+    # examine (i, j)'s 8 neighbors
+    # call dfs recursively if there is a weak edge
+    for ii in range(i-1, i+2) :
+        for jj in range(j-1, j+2) :
+            if (img[ii, jj] == 80) and ((ii, jj) not in visited) :
                 dfs(img, res, ii, jj, visited)
 
 def hysteresis(img):
@@ -154,16 +93,11 @@ def hysteresis(img):
     Returns:
         res: hysteresised image.
     """
-    res = np.zeros_like(img)
-    strong_indices = np.where(img == 255)
-
-    for i, j in zip(strong_indices[0], strong_indices[1]):
-        dfs(img, res, i, j)
+    #implement 
 
     return res
 
 def main():
-    # 这部分已经给出，不需要修改
     RGB_img = Image.open('./iguana.bmp')
 
     noise_reduced_img = reduce_noise(RGB_img)
@@ -181,5 +115,3 @@ def main():
 
     hysteresis_img = hysteresis(double_threshold_img)
     Image.fromarray(hysteresis_img.astype('uint8')).save('./iguana_hysteresis.bmp', 'BMP')
-
-
