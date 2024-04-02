@@ -6,15 +6,34 @@ import numpy as np
 Get and use the functions associated with gaussconvolve2d that you used in the last HW02.
 """
 def gauss1d(sigma):
-   
+    size = int(math.ceil(6 * sigma))
+    x = np.arange(-size, size + 1)
+    kernel = np.exp(-x**2 / (2 * sigma**2))
+    kernel /= np.sum(kernel)
+    return kernel
+
 def gauss2d(sigma):
-    # implement
+    size = int(math.ceil(6 * sigma))
+    x, y = np.meshgrid(np.arange(-size, size + 1), np.arange(-size, size + 1))
+    kernel = np.exp(-(x**2 + y**2) / (2 * sigma**2))
+    kernel /= np.sum(kernel)
+    return kernel
 
-def convolve2d(array,filter):
-    # implement
+def gaussconvolve2d(array, sigma):
+    # Generate 2D Gaussian filter
+    kernel = gauss2d(sigma)
+    
+    # Perform 2D convolution
+    kernel_size = len(kernel)
+    image_height, image_width = array.shape
+    padded_array = np.pad(array, ((kernel_size//2, kernel_size//2), (kernel_size//2, kernel_size//2)), mode='edge')
+    result = np.zeros_like(array)
 
-def gaussconvolve2d(array,sigma):
-    # implement
+    for i in range(image_height):
+        for j in range(image_width):
+            result[i, j] = np.sum(padded_array[i:i+kernel_size, j:j+kernel_size] * kernel)
+
+    return result
 
 def reduce_noise(img):
     """ Return the gray scale gaussian filtered image with sigma=1.6
