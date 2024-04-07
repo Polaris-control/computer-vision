@@ -262,7 +262,9 @@ def main():
 
     # Calculate gradients
     # 计算梯度
-    g, theta = sobel_filters(noise_reduced_img)
+    Ix, Iy, g, theta = sobel_filters(noise_reduced_img
+    Image.fromarray(Ix.astype('uint8')).show()
+    Image.fromarray(Iy.astype('uint8')).show()                                 
     Image.fromarray(g.astype('uint8')).show()
     Image.fromarray(theta.astype('uint8')).show()
 
