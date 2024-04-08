@@ -278,6 +278,7 @@ def main():
     double_threshold_img = double_thresholding(non_max_suppression_img)
     Image.fromarray(double_threshold_img.astype('uint8')).show()
 
+    
     # Perform hysteresis
     # 执行环境
     hysteresis_img = hysteresis(double_threshold_img)
