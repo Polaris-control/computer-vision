@@ -264,7 +264,8 @@ def main():
     # 计算梯度
     Ix, Iy, g, theta = sobel_filters(noise_reduced_img
     Image.fromarray(Ix.astype('uint8')).show()
-    Image.fromarray(Iy.astype('uint8')).show()                                 
+    Image.fromarray(Iy.astype('uint8')).show()   
+                                     
     Image.fromarray(g.astype('uint8')).show()
     Image.fromarray(theta.astype('uint8')).show()
 
@@ -283,5 +284,6 @@ def main():
     # 执行环境
     hysteresis_img = hysteresis(double_threshold_img)
     Image.fromarray(hysteresis_img.astype('uint8')).show()
+
 
 main()
