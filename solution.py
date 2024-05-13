@@ -33,9 +33,35 @@ def RANSACFilter(
 
 
     ## END
-    assert isinstance(largest_set, list)
-    return largest_set
+    largest_set = []
+    max_inliers = 1
+    
+    for _ in range(10):  # Repeat the random selection 10 times
+        inliers_set = []
+        random_pair = random.choice(matched_pairs)
+        inliers_set.append(random_pair)  # Ensure the initial match is included in the consensus set
 
+        for pair in matched_pairs:
+            if pair == random_pair:  # Skip the initially randomly selected pair
+                continue
+
+            kp1 = keypoints1[pair[0]]
+            kp2 = keypoints2[pair[1]]
+
+            ori_diff = abs(kp1[3] - kp2[3])
+            if ori_diff > np.pi:
+                ori_diff = 2 * np.pi - ori_diff
+
+            if math.degrees(ori_diff) <= orient_agreement:
+                scale_diff = abs(kp2[2] / kp1[2] - 1)
+                if scale_diff <= scale_agreement:
+                    inliers_set.append(pair)
+
+        if len(inliers_set) > max_inliers:
+            max_inliers = len(inliers_set)
+            largest_set = inliers_set
+
+    return largest_set
 
 
 def FindBestMatches(descriptors1, descriptors2, threshold):
@@ -58,8 +84,20 @@ def FindBestMatches(descriptors1, descriptors2, threshold):
     assert isinstance(threshold, float)
     ## START
     ## the following is just a placeholder to show you the output format
-    num = 5
-    matched_pairs = [[i, i] for i in range(num)]
+    y1 = descriptors1.shape[0]
+    y2 = descriptors2.shape[0]
+    matched_pairs = []
+
+    for i in range(y1):
+        temp = np.zeros(y2)
+        for j in range(y2):
+            temp[j] = math.acos(np.dot(descriptors1[i], descriptors2[j]))
+
+        compare = sorted(range(len(temp)), key=lambda k: temp[k])
+        if temp[compare[0]] / temp[compare[1]] < threshold:
+            matched_pairs.append((i, compare[0]))
+
+
     ## END
     return matched_pairs
 
@@ -81,6 +119,18 @@ def KeypointProjection(xy_points, h):
     assert h.shape == (3, 3)
 
     # START
+    # Convert xy_points to homogeneous coordinates
+    xy_points_homogeneous = np.hstack((xy_points, np.ones((xy_points.shape[0], 1))))
+
+    # Perform projection (matrix multiplication, h*homogeneous(xy_points))
+    xy_prj_homogeneous = np.dot(h, xy_points_homogeneous.T).T
+
+    # Convert xy_prj to regular coordinates
+    xy_points_out = xy_prj_homogeneous[:, :2] / xy_prj_homogeneous[:, 2:]
+
+    # Replace zero values with a very large number to avoid division by zero
+    xy_points_out[xy_points_out == 0] = 1e10
+
 
     # END
     return xy_points_out
@@ -113,12 +163,32 @@ def RANSACHomography(xy_src, xy_ref, num_iter, tol):
     tol = tol*1.0
 
     # START
+    max_inliers = 0
+    h = None
+    N = xy_src.shape[0]
 
+    for i in range(num_iter):
+        sample_indices = np.random.choice(N, 4, replace=False)
+        src_sample = xy_src[sample_indices]
+        ref_sample = xy_ref[sample_indices]
 
+        # Calculate the homography matrix using the selected samples
+        H, _ = cv2.findHomography(src_sample, ref_sample)
 
-    # END
-    assert isinstance(h, np.ndarray)
-    assert h.shape == (3, 3)
+        # Project source keypoints to the reference image
+        xy_src_projected = KeypointProjection(xy_src, H)
+
+        # Compute distances between projected keypoints and corresponding reference keypoints
+        res_dis = np.sqrt(np.sum((xy_ref - xy_src_projected) ** 2, axis=1))
+
+        # Count the number of inliers
+        inliers = np.sum(res_dis < tol)
+
+        # Update the homography matrix if the current iteration yields more inliers
+        if inliers > max_inliers:
+            h = H
+            max_inliers = inliers
+
     return h
 
 
